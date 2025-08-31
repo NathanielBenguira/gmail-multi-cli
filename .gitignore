@@ -3,9 +3,11 @@
 *.pickle
 *.json
 
-# Google OAuth credentials
+# Google OAuth credentials (generic patterns)
 client_secret_*.json
 credentials.json
+client_secret.json
+oauth_credentials.json
 
 # Python
 __pycache__/

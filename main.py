@@ -31,7 +31,7 @@ from rich.syntax import Syntax
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 # File paths
-CREDENTIALS_FILE = 'client_secret_641266316519-ia1ng9fdbvf5hl5bdbv2i99iqscrgjuo.apps.googleusercontent.com.json'
+CREDENTIALS_FILE = 'credentials.json'  # Generic name for OAuth credentials
 TOKENS_DIR = Path('.tokens')
 ACCOUNTS_FILE = TOKENS_DIR / 'accounts.json'
 
@@ -85,13 +85,32 @@ class GmailMultiAccountCLI:
     
     def authenticate_account(self, email: str) -> bool:
         """Authenticate a new Gmail account."""
-        if not os.path.exists(CREDENTIALS_FILE):
-            console.print(f"[red]Error: {CREDENTIALS_FILE} not found![/red]")
+        # Check for credentials file with different possible names
+        credentials_file = None
+        possible_names = [
+            'credentials.json',
+            'client_secret.json',
+            'oauth_credentials.json'
+        ]
+        
+        # Also check for files matching the pattern client_secret_*.json
+        import glob
+        client_secret_files = glob.glob('client_secret_*.json')
+        possible_names.extend(client_secret_files)
+        
+        for name in possible_names:
+            if os.path.exists(name):
+                credentials_file = name
+                break
+        
+        if not credentials_file:
+            console.print(f"[red]Error: No credentials file found![/red]")
             console.print("Please download your OAuth 2.0 credentials from Google Cloud Console.")
+            console.print("Expected files: credentials.json, client_secret.json, or client_secret_*.json")
             return False
         
         try:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
             creds = flow.run_local_server(port=0)
             
             # Save credentials
